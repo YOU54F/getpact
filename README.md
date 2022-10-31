@@ -10,6 +10,30 @@ With thanks to the original author
 
 > **Source**: https://github.com/tongzh/pact-broker-saas
 
+I use it like this
+
+```sh
+pactsafs () {
+  <absolute_path>/pact-broker-safs/$1
+}
+```
+
+```sh
+___Pact Broker SafS___
+______________________
+__Available Commands__
+______________________
+pactsafs help
+pactsafs list
+pactsafs deploy <tenant_name> <tenant_port>
+pactsafs stop <tenant_name>
+pactsafs remove <tenant_name>
+pactsafs backup <tenant_name>
+pactsafs restore <tenant_name>
+______________________
+```
+
+
 ## characteristic
 
 ### multi-tenancy

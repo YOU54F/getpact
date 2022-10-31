@@ -1,0 +1,6 @@
+#!/bin/bash
+
+
+echo "listening known tenants"
+docker ps --format "{{.Names}}" | grep -e '-pact_broker' | sed 's/-pact_\(broker\)-[0-9]//'
+echo 'Successful!'
