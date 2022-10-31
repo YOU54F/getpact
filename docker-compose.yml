@@ -1,0 +1,24 @@
+version: '2'
+
+services:
+  pact_broker:
+    image: pactfoundation/pact-broker
+    ports:
+    - "${TENANT_PORT}:9292"
+    links:
+    - pact_db:db
+    environment:
+      PACT_BROKER_DATABASE_USERNAME: pact
+      PACT_BROKER_DATABASE_PASSWORD: password
+      PACT_BROKER_DATABASE_HOST: db
+      PACT_BROKER_DATABASE_NAME: pact
+  pact_db:
+    image: postgres:15.0-alpine
+    volumes:
+      - data_volume:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: pact
+      POSTGRES_USER: pact
+      POSTGRES_PASSWORD: password
+volumes:
+  data_volume:
