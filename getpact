@@ -4,6 +4,18 @@ SCRIPT_DIR="$(
     pwd
 )" # Figure out where the script is running
 
+case $(uname -sm) in
+'Linux x86_64')
+    os='linux-x86_64'
+    ;;
+'Darwin x86' | 'Darwin x86_64' | 'Darwin arm64')
+    os='osx'
+    ;;
+'Windows')
+    os='win32'
+    ;;
+esac
+
 FILE=${SCRIPT_DIR}/getpact.docker-compose.yml
 check_file() {
 
@@ -116,7 +128,7 @@ broker)
 
 doctor)
     echo "We are checking if the pact-broker command is available"
-    echo we detected you are running $os
+    echo we detected you are running ${os}
     if ! command -v pact-broker &>/dev/null; then
         echo "pact-broker could not be found on \$PATH"
         echo "trying on ${PACT_BIN_PATH}"
@@ -140,7 +152,7 @@ doctor)
             else
                 echo "Ruby is installed. try install-cli ruby"
             fi
-            if !echo $os &>/dev/null; then
+            if !echo ${os} &>/dev/null; then
                 echo "try installing pact-ruby-standalone manually"
             else
                 echo "We can detect your OS. try install-cli standalone"
