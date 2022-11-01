@@ -32,8 +32,8 @@ ______________________
   Available Commands 
 ______________________
 getpact help
-getpact list
 getpact broker
+getpact broker list
 getpact broker deploy <tenant_name> <port>
 getpact broker stop <tenant_name>
 getpact broker remove <tenant_name>

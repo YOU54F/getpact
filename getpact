@@ -40,72 +40,79 @@ volumes:
 
 case "$1" in
 broker)
-case "$2" in
-deploy)
-    shift
-    TENANT_NAME=${1:? you should input the team name.}
-    TENANT_PORT=${2:? you should input the tenant port.}
-    check_file
-    echo "Start deploy pact broker service for "${TENANT_NAME}" on port "${TENANT_PORT}"..."
-    TENANT_PORT=${TENANT_PORT} docker-compose --file ${FILE} -p ${TENANT_NAME} up -d
-    echo "Open your browser at http://0.0.0.0:"${TENANT_PORT}", the broker will be available shortly"
+    # shift
+    case "$2" in
+    deploy)
+        shift
+        shift
+        TENANT_NAME=${1:? you should input the team name.}
+        TENANT_PORT=${2:? you should input the tenant port.}
+        check_file
+        echo "Start deploy pact broker service for "${TENANT_NAME}" on port "${TENANT_PORT}"..."
+        TENANT_PORT=${TENANT_PORT} docker-compose --file ${FILE} -p ${TENANT_NAME} up -d
+        echo "Open your browser at http://0.0.0.0:"${TENANT_PORT}", the broker will be available shortly"
+        ;;
+    list)
+        shift
+        shift
+        echo "listening known tenants"
+        docker ps --format "{{.Names}} http://{{.Ports}}" | grep -e '-pact_broker' | sed 's/-pact_\(broker\)-[0-9]//' | awk -F '->' '{print $1}'
+        ;;
+    stop)
+        shift
+        shift
+        TENANT_NAME=${1:? you should input the team name.}
+        echo "Stopping container, tenant name is "${TENANT_NAME}
+        docker ps | grep ${TENANT_NAME}-pact | awk '{print $1}' | xargs -r docker stop
+        ;;
+    remove)
+        shift
+        shift
+        TENANT_NAME=${1:? you should input the team name.}
+        echo "Start to remove container and volume data, tenant name is "${TENANT_NAME}
+        docker ps -f "status=exited" | grep ${TENANT_NAME}-pact | awk '{print $1}' | xargs -r docker rm
+        docker volume rm ${TENANT_NAME}_data_volume
+        ;;
+    backup)
+        shift
+        shift
+        TENANT_NAME=${1:? you should input the team name.}
+        echo "Start to backup volume, tenant name is "${TENANT_NAME}
+        TENANT_DB_CONTAINER=$(docker ps | grep ${TENANT_NAME}-pact_db | awk '{print $1}')
+        echo "Tenant db container id is "${TENANT_DB_CONTAINER}
+        docker run --rm --volumes-from ${TENANT_DB_CONTAINER} -v ${SCRIPT_DIR}:/backup ubuntu tar cvf /backup/${TENANT_NAME}-data.tar /var/lib/postgresql/data
+        echo "Successful! Please check "${TENANT_NAME}"-data.tar in current folder."
+        ;;
+    restore)
+        shift
+        shift
+        TENANT_NAME=${1:? you should input the team name.}
+        echo "Start to restore volume, tenant name is "${TENANT_NAME}
+        TENANT_DB_CONTAINER=$(docker ps | grep ${TENANT_NAME}-pact_db | awk '{print $1}')
+        echo "Tenant db container id is "${TENANT_DB_CONTAINER}
+        docker run --rm --volumes-from ${TENANT_DB_CONTAINER} -v ${SCRIPT_DIR}:/backup ubuntu tar xvf /backup/${TENANT_NAME}-data.tar -C /
+        echo "Successful! Data restored from "${TENANT_NAME}"-data.tar to container ${TENANT_DB_CONTAINER}."
+        # Must restart db container to make restored data effective.
+        docker restart ${TENANT_DB_CONTAINER}
+        echo "Tenant db container restarted."
+        ;;
+    * | help)
+        echo "______________________"
+        echo "    getpact broker    "
+        echo "______________________"
+        echo "  Available Commands "
+        echo "______________________"
+        echo "getpact broker help"
+        echo "getpact broker list"
+        echo "getpact broker deploy <tenant_name> <port>"
+        echo "getpact broker stop <tenant_name>"
+        echo "getpact broker remove <tenant_name>"
+        echo "getpact broker backup <tenant_name>"
+        echo "getpact broker restore <tenant_name>"
+        echo "______________________"
+        ;;
+    esac
     ;;
-list)
-    shift
-    echo "listening known tenants"
-    res=$(docker ps --format "{{.Names}} http://{{.Ports}}")
-    echo $res | grep -e '-pact_broker' | sed 's/-pact_\(broker\)-[0-9]//' | awk -F '->' '{print $1}'
-    ;;
-stop)
-    shift
-    TENANT_NAME=${1:? you should input the team name.}
-    echo "Stopping container, tenant name is "${TENANT_NAME}
-    docker ps | grep ${TENANT_NAME}-pact | awk '{print $1}' | xargs -r docker stop
-    ;;
-remove)
-    shift
-    TENANT_NAME=${1:? you should input the team name.}
-    echo "Start to remove container and volume data, tenant name is "${TENANT_NAME}
-    docker ps -f "status=exited" | grep ${TENANT_NAME}-pact | awk '{print $1}' | xargs -r docker rm
-    docker volume rm ${TENANT_NAME}_data_volume
-    ;;
-backup)
-    shift
-    TENANT_NAME=${1:? you should input the team name.}
-    echo "Start to backup volume, tenant name is "${TENANT_NAME}
-    TENANT_DB_CONTAINER=$(docker ps | grep ${TENANT_NAME}-pact_db | awk '{print $1}')
-    echo "Tenant db container id is "${TENANT_DB_CONTAINER}
-    docker run --rm --volumes-from ${TENANT_DB_CONTAINER} -v ${SCRIPT_DIR}:/backup ubuntu tar cvf /backup/${TENANT_NAME}-data.tar /var/lib/postgresql/data
-    echo "Successful! Please check "${TENANT_NAME}"-data.tar in current folder."
-    ;;
-restore)
-    shift
-    TENANT_NAME=${1:? you should input the team name.}
-    echo "Start to restore volume, tenant name is "${TENANT_NAME}
-    TENANT_DB_CONTAINER=$(docker ps | grep ${TENANT_NAME}-pact_db | awk '{print $1}')
-    echo "Tenant db container id is "${TENANT_DB_CONTAINER}
-    docker run --rm --volumes-from ${TENANT_DB_CONTAINER} -v ${SCRIPT_DIR}:/backup ubuntu tar xvf /backup/${TENANT_NAME}-data.tar -C /
-    echo "Successful! Data restored from "${TENANT_NAME}"-data.tar to container ${TENANT_DB_CONTAINER}."
-    # Must restart db container to make restored data effective.
-    docker restart ${TENANT_DB_CONTAINER}
-    echo "Tenant db container restarted."
-    ;;
-* | help)
-    echo "______________________"
-    echo "    getpact broker    "
-    echo "______________________"
-    echo "  Available Commands "
-    echo "______________________"
-    echo "getpact broker help"
-    echo "getpact broker stop <tenant_name>"
-    echo "getpact broker remove <tenant_name>"
-    echo "getpact broker backup <tenant_name>"
-    echo "getpact broker restore <tenant_name>"
-    echo "getpact broker restore <tenant_name>"
-    echo "______________________"
-    ;;
-esac
-  ;;
 
 doctor)
     echo "We are checking if the pact-broker command is available"
@@ -155,9 +162,9 @@ doctor-env)
     [ ! "$PACT_BROKER_BASE_URL" ] && MISSING+=("PACT_BROKER_BASE_URL")
     [ ! "$PACT_BROKER_TOKEN" ] && MISSING+=("PACT_BROKER_TOKEN")
     if [ ${#MISSING[@]} -gt 0 ]; then
-    echo "ERROR: The following environment variables are not set:"
-    printf '\t%s\n' "${MISSING[@]}"
-    exit 1
+        echo "ERROR: The following environment variables are not set:"
+        printf '\t%s\n' "${MISSING[@]}"
+        exit 1
     fi
     ;;
 install-cli)
@@ -377,8 +384,8 @@ pactflow-download-demo)
     echo "  Available Commands "
     echo "______________________"
     echo "getpact help"
-    echo "getpact list"
     echo "getpact broker"
+    echo "getpact broker list"
     echo "getpact broker deploy <tenant_name> <port>"
     echo "getpact broker stop <tenant_name>"
     echo "getpact broker remove <tenant_name>"
