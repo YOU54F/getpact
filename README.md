@@ -4,15 +4,15 @@ Get Pact is a helper for Pact.io to get you started
 
 You can run it directly from the Interwebs
 
-`curl https://rebrand.ly/getpact -Lso - | sh -s -- help`
+`curl pact.saf.dev -Lso - | bash -s -- help`
 
 The source is [here](https://gist.github.com/YOU54F/642ee8f54f1da813b0ee6e2a29628016) 
 
 I set it up like the following in my `.zshrc` file
 
 ```sh
-alias getpact_run="curl https://rebrand.ly/getpact -Lso - | sh -s -- help"
-alias getpact_dl="curl https://rebrand.ly/getpact -Ls -o"
+alias getpact_run="curl pact.saf.dev -Lso - | bash -s -- help"
+alias getpact_dl="curl pact.saf.dev -Ls -o"
 getpact_location="/Users/saf/dev/you54f/getpact/getpact"
 getpact () {
   first_arg="$1"
