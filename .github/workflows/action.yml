@@ -1,0 +1,15 @@
+name: Get Pact Tester
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run the help script
+        run: curl pact.saf.dev -Lso - | bash -s -- help
