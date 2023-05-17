@@ -13,7 +13,7 @@ services:
       PACT_BROKER_DATABASE_HOST: db
       PACT_BROKER_DATABASE_NAME: pact
   pact_db:
-    image: postgres:15.0-alpine
+    image: postgres:15.3-alpine
     volumes:
       - data_volume:/var/lib/postgresql/data
     environment:
